@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniSME AI Video Generator — Hackathon Pitch</title>
+<style>
+  /* ── Cisco Dark Theme Tokens ─────────────────────────────── */
+  :root {
+    --cisco-bg:        #0d1929;
+    --cisco-surface:   #132038;
+    --cisco-card:      #1a2e4a;
+    --cisco-blue:      #00bceb;
+    --cisco-blue-dark: #007fb4;
+    --cisco-green:     #6dbe4e;
+    --cisco-orange:    #ff6b00;
+    --cisco-white:     #ffffff;
+    --cisco-muted:     #7e94b0;
+    --cisco-border:    #1e3a5f;
+    --font: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--cisco-bg);
+    color: var(--cisco-white);
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── Slide Container ─────────────────────────────────────── */
+  .deck { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+  }
+  .slide.active { display: flex; }
+
+  /* ── Cisco Header Bar ────────────────────────────────────── */
+  .cisco-bar {
+    background: linear-gradient(90deg, var(--cisco-blue-dark) 0%, var(--cisco-blue) 100%);
+    height: 6px;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  /* ── Slide Layout Zones ──────────────────────────────────── */
+  .slide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 52px 10px;
+    flex-shrink: 0;
+  }
+
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-hex {
+    width: 36px; height: 36px;
+    background: var(--cisco-blue);
+    clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 900; color: var(--cisco-bg);
+  }
+  .logo-text { font-size: 18px; font-weight: 700; color: var(--cisco-white); letter-spacing: .5px; }
+  .logo-text span { color: var(--cisco-blue); }
+
+  .slide-tag {
+    font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    color: var(--cisco-muted); text-transform: uppercase;
+  }
+
+  .slide-body {
+    flex: 1;
+    padding: 0 52px 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Footer ─────────────────────────────────────────────── */
+  .slide-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 52px;
+    border-top: 1px solid var(--cisco-border);
+    flex-shrink: 0;
+  }
+  .footer-left  { font-size: 10px; color: var(--cisco-muted); }
+  .footer-right { display: flex; gap: 6px; }
+
+  .nav-btn {
+    background: var(--cisco-card);
+    border: 1px solid var(--cisco-border);
+    color: var(--cisco-blue);
+    padding: 5px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: background .15s;
+  }
+  .nav-btn:hover { background: var(--cisco-blue); color: var(--cisco-bg); }
+  .nav-btn:disabled { opacity: .3; cursor: default; }
+  .dot-row { display: flex; gap: 6px; align-items: center; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--cisco-border); cursor: pointer; transition: background .2s;
+  }
+  .dot.active { background: var(--cisco-blue); }
+
+  /* ── Typography Helpers ──────────────────────────────────── */
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 3px;
+    color: var(--cisco-blue); text-transform: uppercase; margin-bottom: 6px;
+  }
+  h1 { font-size: 52px; font-weight: 800; line-height: 1.1; }
+  h2 { font-size: 34px; font-weight: 700; line-height: 1.2; margin-bottom: 6px; }
+  .lead { font-size: 18px; color: var(--cisco-muted); line-height: 1.55; }
+  .highlight { color: var(--cisco-blue); }
+
+  /* ── Card Grid ───────────────────────────────────────────── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 20px; flex: 1; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 20px; }
+
+  .card {
+    background: var(--cisco-card);
+    border: 1px solid var(--cisco-border);
+    border-radius: 10px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--cisco-blue);
+  }
+  .card.green::before  { background: var(--cisco-green); }
+  .card.orange::before { background: var(--cisco-orange); }
+
+  .card-icon { font-size: 28px; margin-bottom: 10px; display: block; }
+  .card h3   { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .card p    { font-size: 13px; color: var(--cisco-muted); line-height: 1.5; }
+
+  /* ── Stat Numbers ────────────────────────────────────────── */
+  .stats-row { display: flex; gap: 24px; margin-top: 16px; }
+  .stat {
+    background: var(--cisco-card);
+    border: 1px solid var(--cisco-border);
+    border-radius: 10px;
+    padding: 18px 26px;
+    text-align: center;
+    flex: 1;
+  }
+  .stat-num  { font-size: 38px; font-weight: 800; color: var(--cisco-blue); line-height: 1; }
+  .stat-label{ font-size: 11px; color: var(--cisco-muted); margin-top: 4px; letter-spacing: 1px; }
+
+  /* ── Pipeline / Flow ─────────────────────────────────────── */
+  .pipeline {
+    display: flex; align-items: stretch;
+    gap: 0; margin-top: 22px; flex: 1;
+  }
+  .p-step {
+    flex: 1;
+    background: var(--cisco-card);
+    border: 1px solid var(--cisco-border);
+    border-radius: 0;
+    padding: 18px 16px;
+    position: relative;
+    display: flex; flex-direction: column;
+  }
+  .p-step:first-child { border-radius: 10px 0 0 10px; }
+  .p-step:last-child  { border-radius: 0 10px 10px 0; }
+  .p-step + .p-step::before {
+    content: '›';
+    position: absolute;
+    left: -14px; top: 50%; transform: translateY(-50%);
+    color: var(--cisco-blue); font-size: 22px; font-weight: 900;
+    z-index: 10;
+  }
+  .p-num {
+    font-size: 10px; font-weight: 800; letter-spacing: 2px;
+    color: var(--cisco-blue); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .p-label { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .p-desc  { font-size: 11px; color: var(--cisco-muted); line-height: 1.4; }
+  .p-icon  { font-size: 22px; margin-bottom: 8px; }
+
+  /* ── Tech Badge Row ──────────────────────────────────────── */
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .badge {
+    background: var(--cisco-border);
+    color: var(--cisco-blue);
+    border: 1px solid var(--cisco-blue-dark);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px; font-weight: 600;
+  }
+
+  /* ── Check list ──────────────────────────────────────────── */
+  .check-list { list-style: none; margin-top: 10px; }
+  .check-list li {
+    display: flex; align-items: flex-start;
+    gap: 10px; padding: 8px 0;
+    border-bottom: 1px solid var(--cisco-border);
+    font-size: 14px; line-height: 1.5;
+  }
+  .check-list li:last-child { border-bottom: none; }
+  .check-list li::before {
+    content: '✓';
+    color: var(--cisco-green); font-weight: 700;
+    font-size: 16px; flex-shrink: 0;
+  }
+
+  /* ── CTA Button ──────────────────────────────────────────── */
+  .cta {
+    display: inline-block;
+    background: var(--cisco-blue);
+    color: var(--cisco-bg);
+    padding: 12px 32px;
+    border-radius: 6px;
+    font-size: 15px; font-weight: 700;
+    text-decoration: none;
+    margin-top: 18px;
+  }
+
+  /* ── Decorative Hex grid (bg) ────────────────────────────── */
+  .hex-bg {
+    position: absolute;
+    right: -60px; top: -40px;
+    width: 420px; height: 420px;
+    opacity: .04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpolygon points='30,2 58,17 58,47 30,62 2,47 2,17' fill='none' stroke='%2300bceb' stroke-width='1'/%3E%3C/svg%3E");
+    background-size: 60px 52px;
+    pointer-events: none;
+  }
+
+  /* ── Slide 1 specific ────────────────────────────────────── */
+  .s1-content { flex: 1; display: flex; align-items: center; gap: 60px; padding-bottom: 10px; }
+  .s1-left    { flex: 1.2; }
+  .s1-right   { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+  .s1-pill {
+    display: inline-block;
+    background: rgba(0,188,235,.12);
+    border: 1px solid var(--cisco-blue);
+    color: var(--cisco-blue);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 12px; font-weight: 700;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .mini-card {
+    background: var(--cisco-card);
+    border: 1px solid var(--cisco-border);
+    border-left: 3px solid var(--cisco-blue);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+  .mini-card.green  { border-left-color: var(--cisco-green); }
+  .mini-card.orange { border-left-color: var(--cisco-orange); }
+  .mini-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .mini-card p  { font-size: 12px; color: var(--cisco-muted); }
+
+  /* ── Slide 5 specific ────────────────────────────────────── */
+  .roadmap { display: flex; gap: 0; margin-top: 18px; }
+  .roadmap-item {
+    flex: 1; padding: 16px 18px;
+    border: 1px solid var(--cisco-border);
+    border-right: none;
+    position: relative;
+  }
+  .roadmap-item:last-child { border-right: 1px solid var(--cisco-border); }
+  .roadmap-item:first-child { border-radius: 10px 0 0 10px; }
+  .roadmap-item:last-child  { border-radius: 0 10px 10px 0; }
+  .roadmap-phase {
+    font-size: 10px; font-weight: 800; letter-spacing: 2px;
+    color: var(--cisco-blue); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .roadmap-item h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .roadmap-item ul { list-style: none; }
+  .roadmap-item ul li { font-size: 11px; color: var(--cisco-muted); padding: 2px 0; }
+  .roadmap-item ul li::before { content: '· '; color: var(--cisco-blue); }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- ════════════════════════════════════════════════════════
+       SLIDE 1 — Title
+  ══════════════════════════════════════════════════════════ -->
+  <div class="slide active" id="s1">
+    <div class="cisco-bar"></div>
+    <div class="slide-header">
+      <div class="logo-mark">
+        <div class="logo-hex">O</div>
+        <div class="logo-text">Omni<span>SME</span></div>
+      </div>
+      <div class="slide-tag">Hackathon 2026</div>
+    </div>
+
+    <div class="slide-body">
+      <div class="hex-bg"></div>
+      <div class="s1-content">
+        <div class="s1-left">
+          <div class="s1-pill">AI Innovation Challenge</div>
+          <div class="eyebrow">Introducing</div>
+          <h1>OmniSME<br><span class="highlight">AI Video</span><br>Generator</h1>
+          <p class="lead" style="margin-top:18px; max-width:480px;">
+            Turn any YouTube knowledge base into a polished,
+            AI-avatar-narrated training video — in minutes, not days.
+          </p>
+          <div class="badge-row" style="margin-top:22px;">
+            <span class="badge">OpenAI GPT-4o</span>
+            <span class="badge">HeyGen Avatars</span>
+            <span class="badge">FAISS RAG</span>
+            <span class="badge">Streamlit</span>
+            <span class="badge">LangChain</span>
+          </div>
+        </div>
+
+        <div class="s1-right">
+          <div class="mini-card">
+            <h4>Problem</h4>
+            <p>SME knowledge is locked in hours of video; creating new content takes days of editing.</p>
+          </div>
+          <div class="mini-card green">
+            <h4>Solution</h4>
+            <p>AI extracts, scripts, and renders professional avatar videos from source URLs in one click.</p>
+          </div>
+          <div class="mini-card orange">
+            <h4>Differentiator</h4>
+            <p>Picture-in-Picture layout shows relevant source footage behind the avatar — context + narration together.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span class="footer-left">OmniSME AI Video Generator &nbsp;|&nbsp; Hackathon 2026</span>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="dot-row" id="dots"></div>
+        <div class="footer-right">
+          <button class="nav-btn" id="prev-1" onclick="changeSlide(-1)" disabled>← Prev</button>
+          <button class="nav-btn" onclick="changeSlide(1)">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       SLIDE 2 — Problem & Market
+  ══════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s2">
+    <div class="cisco-bar"></div>
+    <div class="slide-header">
+      <div class="logo-mark">
+        <div class="logo-hex">O</div>
+        <div class="logo-text">Omni<span>SME</span></div>
+      </div>
+      <div class="slide-tag">The Problem</div>
+    </div>
+
+    <div class="slide-body">
+      <div class="hex-bg"></div>
+      <div class="eyebrow">Why it Matters</div>
+      <h2>Enterprise Knowledge Creation is <span class="highlight">Broken</span></h2>
+      <p class="lead" style="max-width:640px;">
+        Subject-matter experts spend hundreds of hours recording, scripting, and editing training videos
+        — while the knowledge already exists in YouTube content and internal recordings.
+      </p>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-num">40+</div>
+          <div class="stat-label">Hours per training video</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">$15K</div>
+          <div class="stat-label">Avg. production cost</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">3–6wk</div>
+          <div class="stat-label">Typical delivery time</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">73%</div>
+          <div class="stat-label">SMEs report knowledge-gap urgency</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:18px; flex:unset;">
+        <div class="card">
+          <span class="card-icon">🎥</span>
+          <h3>Content Exists — Access Doesn't</h3>
+          <p>Vast libraries of YouTube tutorials, recorded webinars, and conference talks sit unused because repurposing them requires professional video teams.</p>
+        </div>
+        <div class="card orange">
+          <span class="card-icon">⏱️</span>
+          <h3>Speed-to-Knowledge Gap</h3>
+          <p>When a new technology or process changes, teams wait weeks for updated training materials — losing productivity and introducing compliance risk.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span class="footer-left">Slide 2 of 5</span>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="dot-row" id="dots2"></div>
+        <div class="footer-right">
+          <button class="nav-btn" onclick="changeSlide(-1)">← Prev</button>
+          <button class="nav-btn" onclick="changeSlide(1)">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       SLIDE 3 — Architecture & Pipeline
+  ══════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s3">
+    <div class="cisco-bar"></div>
+    <div class="slide-header">
+      <div class="logo-mark">
+        <div class="logo-hex">O</div>
+        <div class="logo-text">Omni<span>SME</span></div>
+      </div>
+      <div class="slide-tag">How It Works</div>
+    </div>
+
+    <div class="slide-body">
+      <div class="hex-bg"></div>
+      <div class="eyebrow">5-Stage AI Pipeline</div>
+      <h2>From YouTube URLs to Finished Video — <span class="highlight">Fully Automated</span></h2>
+
+      <div class="pipeline">
+        <div class="p-step">
+          <div class="p-icon">📥</div>
+          <div class="p-num">Stage 1</div>
+          <div class="p-label">Transcript Extraction</div>
+          <div class="p-desc">LangChain YoutubeLoader pulls captions from every source URL into a unified document corpus.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">🧠</div>
+          <div class="p-num">Stage 2</div>
+          <div class="p-label">RAG Script Generation</div>
+          <div class="p-desc">FAISS vector store + GPT-4o retrieves the most relevant chunks and writes a structured presenter script.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">🔍</div>
+          <div class="p-num">Stage 3</div>
+          <div class="p-label">Segment Selection</div>
+          <div class="p-desc">AI identifies which exact timestamp ranges from source videos are most relevant to the topic — for PiP background.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">🤖</div>
+          <div class="p-num">Stage 4</div>
+          <div class="p-label">HeyGen Rendering</div>
+          <div class="p-desc">Script submitted to HeyGen REST API v2; chosen avatar and voice render the professional narration video.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">🎬</div>
+          <div class="p-num">Stage 5</div>
+          <div class="p-label">PiP Merge & Export</div>
+          <div class="p-desc">Avatar video composited over relevant YouTube clips (muted, full-screen) — downloadable MP4 ready to share.</div>
+        </div>
+      </div>
+
+      <div class="badge-row" style="margin-top:16px;">
+        <span class="badge">Streamlit UI</span>
+        <span class="badge">OpenAI text-embedding-3-small</span>
+        <span class="badge">FAISS</span>
+        <span class="badge">GPT-4o</span>
+        <span class="badge">HeyGen API v2</span>
+        <span class="badge">yt-dlp</span>
+        <span class="badge">FFmpeg PiP merge</span>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span class="footer-left">Slide 3 of 5</span>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="dot-row" id="dots3"></div>
+        <div class="footer-right">
+          <button class="nav-btn" onclick="changeSlide(-1)">← Prev</button>
+          <button class="nav-btn" onclick="changeSlide(1)">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       SLIDE 4 — Key Features / Demo
+  ══════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s4">
+    <div class="cisco-bar"></div>
+    <div class="slide-header">
+      <div class="logo-mark">
+        <div class="logo-hex">O</div>
+        <div class="logo-text">Omni<span>SME</span></div>
+      </div>
+      <div class="slide-tag">Key Features</div>
+    </div>
+
+    <div class="slide-body">
+      <div class="hex-bg"></div>
+      <div class="eyebrow">What Makes OmniSME Different</div>
+      <h2>Powerful Features, <span class="highlight">Zero Video Editing Skills Required</span></h2>
+
+      <div class="grid-2" style="margin-top:16px;">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="card">
+            <span class="card-icon">🖼️</span>
+            <h3>Picture-in-Picture Mode</h3>
+            <p>Relevant YouTube source clips auto-play as the background while the avatar narrates — learners see both context and explanation simultaneously.</p>
+          </div>
+          <div class="card green">
+            <span class="card-icon">🤖</span>
+            <h3>Multi-Avatar & Voice Selection</h3>
+            <p>Browse your full HeyGen avatar library and voice roster directly in the UI. One click switches the presenter persona for different audiences.</p>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="card">
+            <span class="card-icon">⚡</span>
+            <h3>Resilient Render Resumption</h3>
+            <p>HeyGen renders can take 30+ minutes. OmniSME saves the video ID and lets you resume polling in a later session — no lost work.</p>
+          </div>
+          <div class="card orange">
+            <span class="card-icon">🎯</span>
+            <h3>Source-Grounded Output</h3>
+            <p>GPT-4o only uses content from the URLs you provide — no hallucinations, no off-topic filler. The script cites your exact knowledge base.</p>
+          </div>
+        </div>
+      </div>
+
+      <ul class="check-list" style="margin-top:16px;">
+        <li>One-click "Regenerate" to iterate the script without re-entering inputs</li>
+        <li>Liked videos sidebar for managing your generated content library</li>
+        <li>Graceful fallback to Avatar-Only layout if YouTube download is blocked or unavailable</li>
+      </ul>
+    </div>
+
+    <div class="slide-footer">
+      <span class="footer-left">Slide 4 of 5</span>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="dot-row" id="dots4"></div>
+        <div class="footer-right">
+          <button class="nav-btn" onclick="changeSlide(-1)">← Prev</button>
+          <button class="nav-btn" onclick="changeSlide(1)">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       SLIDE 5 — Impact & Ask
+  ══════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s5">
+    <div class="cisco-bar"></div>
+    <div class="slide-header">
+      <div class="logo-mark">
+        <div class="logo-hex">O</div>
+        <div class="logo-text">Omni<span>SME</span></div>
+      </div>
+      <div class="slide-tag">Impact &amp; Roadmap</div>
+    </div>
+
+    <div class="slide-body">
+      <div class="hex-bg"></div>
+      <div class="eyebrow">Business Value</div>
+      <h2>From Weeks to <span class="highlight">Minutes</span> — Measurable Impact</h2>
+
+      <div class="stats-row" style="margin-top:14px;">
+        <div class="stat">
+          <div class="stat-num">95%</div>
+          <div class="stat-label">Reduction in production time</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">&lt;5min</div>
+          <div class="stat-label">End-to-end pipeline runtime</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">$0</div>
+          <div class="stat-label">Video editing expertise needed</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">Topics &amp; languages scalable</div>
+        </div>
+      </div>
+
+      <div class="roadmap" style="margin-top:18px;">
+        <div class="roadmap-item" style="background:var(--cisco-card);">
+          <div class="roadmap-phase">Now — v3.0</div>
+          <h4>Core Platform</h4>
+          <ul>
+            <li>YouTube RAG pipeline</li>
+            <li>HeyGen avatar render</li>
+            <li>PiP layout with smart segments</li>
+            <li>Resilient render resumption</li>
+          </ul>
+        </div>
+        <div class="roadmap-item" style="background:var(--cisco-card);">
+          <div class="roadmap-phase">Next — v4.0</div>
+          <h4>Enterprise Integrations</h4>
+          <ul>
+            <li>SharePoint / Confluence sources</li>
+            <li>SCORM / LMS export</li>
+            <li>Batch topic processing</li>
+            <li>Multi-language voice support</li>
+          </ul>
+        </div>
+        <div class="roadmap-item" style="background:var(--cisco-card);">
+          <div class="roadmap-phase">Future — v5.0</div>
+          <h4>Scale &amp; Intelligence</h4>
+          <ul>
+            <li>Cisco Webex meeting ingestion</li>
+            <li>Auto-quiz generation (AI)</li>
+            <li>Analytics dashboard</li>
+            <li>Custom avatar branding</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:18px;
+                  background:var(--cisco-card); border:1px solid var(--cisco-border);
+                  border-radius:10px; padding:18px 28px;">
+        <div>
+          <div style="font-size:13px;color:var(--cisco-muted);margin-bottom:4px;">Ready to try it?</div>
+          <div style="font-size:16px;font-weight:700;">Run locally: <span class="highlight">streamlit run app.py</span></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;color:var(--cisco-muted);">Stack</div>
+          <div style="font-size:13px;font-weight:600;color:var(--cisco-white);">Python · Streamlit · LangChain · OpenAI · HeyGen</div>
+        </div>
+        <div style="width:2px;height:48px;background:var(--cisco-blue);border-radius:2px;"></div>
+        <div style="text-align:right;">
+          <div style="font-size:22px;font-weight:800;color:var(--cisco-blue);">Let's Demo</div>
+          <div style="font-size:12px;color:var(--cisco-muted);">Questions welcome</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span class="footer-left">Slide 5 of 5</span>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="dot-row" id="dots5"></div>
+        <div class="footer-right">
+          <button class="nav-btn" onclick="changeSlide(-1)">← Prev</button>
+          <button class="nav-btn" id="next-5" onclick="changeSlide(1)" disabled>Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<script>
+  const TOTAL = 5;
+  let cur = 0;
+
+  function renderDots() {
+    document.querySelectorAll('[id^="dots"]').forEach(el => {
+      el.innerHTML = '';
+      for (let i = 0; i < TOTAL; i++) {
+        const d = document.createElement('div');
+        d.className = 'dot' + (i === cur ? ' active' : '');
+        d.onclick = () => goTo(i);
+        el.appendChild(d);
+      }
+    });
+  }
+
+  function goTo(n) {
+    document.getElementById('s' + (cur + 1)).classList.remove('active');
+    cur = Math.max(0, Math.min(TOTAL - 1, n));
+    document.getElementById('s' + (cur + 1)).classList.add('active');
+    renderDots();
+  }
+
+  function changeSlide(dir) { goTo(cur + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    changeSlide(-1);
+  });
+
+  renderDots();
+</script>
+</body>
+</html>

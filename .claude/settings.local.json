@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m py_compile src/heygen_client.py)",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\)\")",
+      "Bash(python3 -m py_compile src/heygen_client.py app.py)",
+      "Bash(python3 -m py_compile src/video_merger.py)",
+      "Skill(code-review)",
+      "Bash(python3 *)",
+      "Bash(pip show *)",
+      "mcp__fetch__fetch",
+      "Bash(curl -s \"https://api.github.com/repos/yt-dlp/yt-dlp/commits?path=yt_dlp/utils.py&since=2022-06-01T00:00:00Z&until=2022-12-31T00:00:00Z&per_page=5\")",
+      "Bash(curl -s \"https://api.github.com/repos/yt-dlp/yt-dlp/contents/yt_dlp/utils/_utils.py?ref=2024.01.07\")",
+      "Bash(curl -s \"https://api.github.com/repos/yt-dlp/yt-dlp/git/refs/tags\")",
+      "Bash(curl -s \"https://api.github.com/repos/yt-dlp/yt-dlp/contents/yt_dlp/utils/_utils.py?ref=2023.12.30\")",
+      "Skill(claude-api)",
+      "Bash(open /Users/hardikraval/Documents/Trainings/Claude/TestProject/OmniSME_2/OmniSME_Hackathon_Cisco_Dark_v2_Notes.pptx)",
+      "Bash(open /Users/hardikraval/Documents/Trainings/Claude/TestProject/OmniSME_2/OmniSME_Hackathon_Cisco_Dark_v2_Final.pptx)",
+      "Bash(python *)"
+    ]
+  }
+}
