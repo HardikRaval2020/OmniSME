@@ -44,7 +44,7 @@
 5. Renders a professional AI avatar via HeyGen API v2
 6. Composites a **Picture-in-Picture** (PiP) final MP4 — avatar in the corner, source footage full-screen
 
-**Before OmniSME:** 40+ hours · $15,000 production cost · 3–6 week delivery cycle
+**Before OmniSME:** 40+ hours · $2,000-$3000 production cost · 3–6 week delivery cycle
 **After OmniSME:** ~25 minutes · ~$4.50 API cost · zero video editing expertise required
 
 ### Who is it for?
@@ -76,6 +76,8 @@
 |------|-------------|
 | **Picture-in-Picture** | Topic-relevant YouTube clips (muted, full-screen) + avatar in bottom-right corner |
 | **Avatar Only** | HeyGen avatar on a plain dark background — automatic fallback if YouTube download fails |
+
+<img width="886" height="400" alt="image" src="https://github.com/user-attachments/assets/9c1dba3b-e199-4619-8829-c91371e9bc16" />
 
 ---
 
@@ -527,8 +529,8 @@ HeyGen's avatar API can be slow at peak times. OmniSME retries twice with 5-seco
 
 | Name | Role |
 |------|------|
-| **Hardik Raval** | Customer Experience · Customer Success Specialist |
-| **Rahul Bhardwaj** | Customer Experience · Customer Success Specialist |
+| **Hardik Raval** |  |
+
 
 Built as part of the **Cisco CX Innovation Hackathon 2026**.
 
